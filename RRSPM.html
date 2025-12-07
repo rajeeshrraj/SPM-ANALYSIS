@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SPM Analysis — Final Brake Feel &amp; Power</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 24px auto 40px;
+      padding: 16px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      text-align: center;
+      color: #555;
+      margin-bottom: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px 18px;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input[type="date"],
+    input[type="text"],
+    input[type="number"],
+    select,
+    input[type="file"] {
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      padding: 6px 8px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #plotBtn {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    #plotBtn:hover {
+      background: #1d4ed8;
+    }
+
+    #printBtn {
+      background: #e2e8f0;
+      color: #111827;
+    }
+
+    #printBtn:hover {
+      background: #cbd5e1;
+    }
+
+    .chart-card {
+      padding: 16px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      margin-top: 10px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 360px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .footer-note {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    #bftBptInfo {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    #bftBptInfo span.label {
+      font-weight: 600;
+    }
+
+    #stoppageCharts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .stoppage-card {
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 10px;
+    }
+
+    .stoppage-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .stoppage-chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 260px; /* Taller for clarity */
+    }
+
+    .stoppage-callouts {
+      margin-top: 5px;
+      font-size: 0.8rem;
+      color: #374151;
+    }
+
+    .stoppage-callouts span.label {
+      font-weight: 600;
+    }
+
+    #perfSummaryTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    #perfSummaryTable th,
+    #perfSummaryTable td {
+      border: 1px solid #e5e7eb;
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    #perfSummaryTable th {
+      text-align: center;
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+
+    #perfSummaryTable tr td:first-child {
+      width: 30%;
+      font-weight: 600;
+      background: #f9fafb;
+    }
+
+    #summaryTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    #summaryTable th,
+    #summaryTable td {
+      border: 1px solid #e5e7eb;
+      padding: 4px 6px;
+      text-align: center;
+    }
+
+    #summaryTable th {
+      background: #e5e7eb;
+      font-weight: 600;
+    }
+
+    #irregularitiesBox {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #b91c1c;
+      line-height: 1.4;
+    }
+
+    #irregularitiesBox h3 {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+    }
+
+    #irregularitiesBox ul {
+      margin: 0 0 0 18px;
+      padding: 0;
+    }
+
+    #irregularitiesBox li {
+      margin-bottom: 2px;
+    }
+
+    /* Footer that shows on screen and in print */
+    .footer-print {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6b7280;
+      padding: 6px 0 10px;
+      margin-top: 10px;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .page {
+        margin: 0;
+        max-width: 100%;
+      }
+      .actions {
+        display: none;
+      }
+      .footer-print {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <h1>GPS Time vs Speed — Final Brake Feel &amp; Power Analysis</h1>
+      <div class="subtitle">Web SPM report similar to PDF output</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="driverName">Driver Name :</label>
+          <input type="text" id="driverName" placeholder="e.g. Kiran" />
+        </div>
+
+        <div class="field">
+          <label for="trainNo">Train No :</label>
+          <input type="text" id="trainNo" placeholder="e.g. 20112" />
+        </div>
+
+        <div class="field">
+          <label for="section">Section :</label>
+          <input type="text" id="section" placeholder="e.g. rn mao" />
+        </div>
+
+        <div class="field">
+          <label for="runDate">Date (Run Date) :</label>
+          <input type="date" id="runDate" />
+        </div>
+
+        <div class="field">
+          <label for="depTime">DEP TIME :</label>
+          <select id="depTime">
+            <option value="">--Select--</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="arrTime">ARR TIME :</label>
+          <select id="arrTime">
+            <option value="">--Select--</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="startStation">Start Station :</label>
+          <select id="startStation">
+            <option value="">--Select--</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="endStation">End Station :</label>
+          <select id="endStation">
+            <option value="">--Select--</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="analysedBy">Analyzed By :</label>
+          <input type="text" id="analysedBy" placeholder="e.g. RR" />
+        </div>
+
+        <div class="field">
+          <label for="analysedOn">Analyzed On :</label>
+          <input type="date" id="analysedOn" />
+        </div>
+
+        <div class="field">
+          <label for="fileInput">SPM CSV (1-second data):</label>
+          <input type="file" id="fileInput" accept=".csv" />
+          <span style="font-size:0.75rem;color:#6b7280;">
+            Required columns: <b>Logging Time</b>, <b>Speed</b>, <b>distFromPrevLatLng</b>, <b>last/cur stationCode</b>.
+          </span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="plotBtn">▷ Plot &amp; Generate Report</button>
+        <button type="button" id="printBtn">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- 1. GPS Time vs Speed -->
+    <div class="card">
+      <h2>1. GPS Time vs Speed</h2>
+      <div class="chart-card">
+        <div class="chart-wrapper">
+          <canvas id="speedChart"></canvas>
+        </div>
+        <div class="footer-note">
+          X-axis: <b>GPS Time</b>, Y-axis: <b>Speed (km/h)</b>.<br>
+          Stoppages marked with <b>station code</b>. 1000 m speeds &gt; 60 km/h are shown in <b style="color:red;">red</b>.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. BFT/BPT chart -->
+    <div class="card">
+      <h2>2. BFT / BPT Chart (First 10 km from Start)</h2>
+      <div class="chart-card">
+        <div class="chart-wrapper">
+          <canvas id="distance10Chart"></canvas>
+        </div>
+        <div class="footer-note">
+          0–10 km Distance from starting station vs Speed (line chart).<br/>
+          BFT: braking from <b>10–15 km/h</b> to dropping speed.<br/>
+          BPT: braking from <b>58–65 km/h</b> to dropping speed (label uses start → lowest speed).
+        </div>
+        <div id="bftBptInfo"></div>
+      </div>
+    </div>
+
+    <!-- 3. Last 1.5 km before each stoppage -->
+    <div class="card">
+      <h2>3. Distance from Stoppage vs Speed — Last 1.5 km</h2>
+      <div class="chart-card">
+        <div id="stoppageCharts"></div>
+        <div class="footer-note">
+          Each mini chart: X-axis = <b>Distance from stoppage (m)</b> (about 1500 → 0, 100 m steps), Y-axis = <b>Speed</b>.<br/>
+          Text below shows speed at <b>1.5 km</b>, <b>1 km</b>, and <b>100 m</b> before stoppage.
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Performance Analysis Summary -->
+    <div class="card">
+      <h2>5. Performance Analysis Summary</h2>
+      <div class="chart-card">
+        <table id="perfSummaryTable">
+          <thead>
+          <tr>
+            <th colspan="2">Performance Analysis Summary</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. Station-wise Summary + Irregularities -->
+    <div class="card">
+      <h2>6. Station-wise Speed Summary</h2>
+      <div class="chart-card">
+        <table id="summaryTable">
+          <thead>
+          <tr>
+            <th>Station</th>
+            <th>Stop Time</th>
+            <th>Start Time</th>
+            <th>Speed @3000 m</th>
+            <th>Speed @1000 m</th>
+            <th>Speed @500 m</th>
+            <th>Speed @100 m</th>
+            <th>Speed @20 m</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div id="irregularitiesBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer (visible on screen + all printed pages) -->
+  <div class="footer-print">
+    Developed by RAJEESH RAJ CLI/VEN/KRCL
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    let mainSpeedChart;
+    let distance10Chart;
+    let stoppageChartsInstances = [];
+    let rawData = null;
+
+    let bftInfo = null;
+    let bptInfo = null;
+    let stoppageInfoList = [];
+
+    const LIMIT_1000M = 60;
+    const LIMIT_20M = 10;
+
+    // Populate Start/End stations from CSV
+    function populateStationsFromCodes(stationCodes) {
+      const startSel = document.getElementById("startStation");
+      const endSel = document.getElementById("endStation");
+
+      startSel.length = 1;
+      endSel.length = 1;
+
+      const seen = new Set();
+      stationCodes.forEach(code => {
+        const stn = (code || "").trim();
+        if (!stn) return;
+        if (seen.has(stn)) return;
+        seen.add(stn);
+
+        const o1 = document.createElement("option");
+        o1.value = stn;
+        o1.textContent = stn;
+        startSel.appendChild(o1);
+
+        const o2 = document.createElement("option");
+        o2.value = stn;
+        o2.textContent = stn;
+        endSel.appendChild(o2);
+      });
+    }
+
+    // Populate DEP/ARR dropdowns with times every 5 minutes (00:00:00–23:55:00)
+    function populateTimeDropdown(id) {
+      const sel = document.getElementById(id);
+      sel.length = 1; // keep the "--Select--" option
+      for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 5) {
+          const hh = String(h).padStart(2, "0");
+          const mm = String(m).padStart(2, "0");
+          const ss = "00";
+          const val = `${hh}:${mm}:${ss}`;
+          const opt = document.createElement("option");
+          opt.value = val;
+          opt.textContent = val;
+          sel.appendChild(opt);
+        }
+      }
+    }
+
+    // PLUGINS
+    const stoppageMarkersPlugin = {
+      id: "stoppageMarkers",
+      afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== "speedChart") return;
+        if (!rawData || !stoppageInfoList.length) return;
+
+        const ctx = chart.ctx;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        const speeds = rawData.speeds;
+
+        ctx.save();
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+
+        stoppageInfoList.forEach(info => {
+          const stopIdx = info.stopIndex;
+          if (stopIdx == null) return;
+
+          const xStop = xScale.getPixelForValue(stopIdx);
+          const yStop = yScale.getPixelForValue(speeds[stopIdx]);
+          ctx.fillStyle = "#111827";
+          ctx.fillText(info.station, xStop, yStop - 4);
+
+          if (info.s1000 && typeof info.s1000.idx === "number") {
+            const idx1000 = info.s1000.idx;
+            const x1000 = xScale.getPixelForValue(idx1000);
+            const y1000 = yScale.getPixelForValue(info.s1000.speed);
+            ctx.fillStyle = info.s1000.speed > LIMIT_1000M ? "red" : "#111827";
+            ctx.fillText(info.s1000.speed.toFixed(0), x1000, y1000 - 4);
+          }
+        });
+
+        ctx.restore();
+      }
+    };
+
+    const bftBptCalloutsPlugin = {
+      id: "bftBptCallouts",
+      afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== "distance10Chart") return;
+        if (!bftInfo && !bptInfo) return;
+
+        const ctx = chart.ctx;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        const baseData = chart.data.datasets[0].data;
+
+        ctx.save();
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+
+        if (bftInfo && typeof bftInfo.chartIndex === "number") {
+          const idx = bftInfo.chartIndex;
+          if (idx >= 0 && idx < baseData.length) {
+            const x = xScale.getPixelForValue(idx);
+            const y = yScale.getPixelForValue(baseData[idx]);
+            const text = `BFT ${bftInfo.startSpeed.toFixed(0)}→${bftInfo.endSpeed.toFixed(0)} KMPH`;
+            ctx.fillStyle = "#111827";
+            ctx.fillText(text, x, y - 8);
+          }
+        }
+
+        if (bptInfo && typeof bptInfo.chartIndex === "number") {
+          const idx = bptInfo.chartIndex;
+          if (idx >= 0 && idx < baseData.length) {
+            const x = xScale.getPixelForValue(idx);
+            const y = yScale.getPixelForValue(baseData[idx]);
+            const text = `BPT ${bptInfo.startSpeed.toFixed(0)}→${bptInfo.lowestSpeed.toFixed(0)} KMPH`;
+            ctx.fillStyle = "#111827";
+            ctx.fillText(text, x, y - 8);
+          }
+        }
+
+        ctx.restore();
+      }
+    };
+
+    // NEW: dashed vertical lines at key distances (1500, 1000, 100, 0 m) on Chart 3 mini-charts
+    const keyDistanceLinesPlugin = {
+      id: "keyDistanceLines",
+      afterDraw(chart) {
+        // Only apply to stoppage mini-charts
+        const parent = chart.canvas.parentElement;
+        if (!parent || !parent.classList.contains("stoppage-chart-wrapper")) return;
+
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        if (!xScale || !yScale) return;
+
+        const ctx = chart.ctx;
+        const distances = [1500, 1000, 100, 0];
+
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = "#9ca3af";
+
+        distances.forEach(d => {
+          if (d < xScale.min || d > xScale.max) return;
+          const x = xScale.getPixelForValue(d);
+          ctx.beginPath();
+          ctx.moveTo(x, yScale.top);
+          ctx.lineTo(x, yScale.bottom);
+          ctx.stroke();
+        });
+
+        ctx.restore();
+      }
+    };
+
+    Chart.register(stoppageMarkersPlugin, bftBptCalloutsPlugin, keyDistanceLinesPlugin);
+
+    // CSV parsing
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) throw new Error("CSV seems to be empty.");
+
+      const headers = lines[0].split(",");
+
+      // Look for "Logging Time" first, fallback to "Gps time"
+      let idxTime = headers.indexOf("Logging Time");
+      if (idxTime === -1) {
+        idxTime = headers.indexOf("Gps time");
+      }
+
+      const idxSpeed = headers.indexOf("Speed");
+      const idxDistPrev = headers.indexOf("distFromPrevLatLng");
+      const idxStation = headers.indexOf("last/cur stationCode");
+
+      if (idxTime === -1 || idxSpeed === -1 || idxDistPrev === -1) {
+        throw new Error("Required columns not found. Need: 'Logging Time' (or 'Gps time'), 'Speed', 'distFromPrevLatLng'");
+      }
+
+      const timeLabels = [];
+      const speeds = [];
+      const distanceKm = [];
+      const stationCodes = [];
+      let cumulativeMeters = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const parts = line.split(",");
+        if (parts.length < headers.length) continue;
+
+        const time = parts[idxTime];
+        const speedVal = parseFloat(parts[idxSpeed]);
+        const distStep = parseFloat(parts[idxDistPrev]);
+        const stn = idxStation === -1 ? "" : parts[idxStation];
+
+        const s = isNaN(speedVal) ? 0 : speedVal;
+        const dStep = isNaN(distStep) ? 0 : distStep;
+
+        cumulativeMeters += dStep;
+
+        timeLabels.push(time);
+        speeds.push(s);
+        distanceKm.push(cumulativeMeters / 1000.0);
+        stationCodes.push(stn || "");
+      }
+
+      const stoppageIndices = detectStoppages(speeds);
+      return { timeLabels, speeds, distanceKm, stationCodes, stoppageIndices };
+    }
+
+    function detectStoppages(speeds) {
+      const indices = [];
+      const lookAhead = 5;
+      for (let i = 1; i < speeds.length; i++) {
+        if (speeds[i] === 0 && speeds[i - 1] > 0) {
+          let zerosAhead = 0;
+          for (let k = 1; k <= lookAhead && i + k < speeds.length; k++) {
+            if (speeds[i + k] === 0) zerosAhead++;
+          }
+          if (zerosAhead >= 2 || i >= speeds.length - lookAhead) {
+            indices.push(i);
+          }
+        }
+      }
+      return indices;
+    }
+
+    // BFT / BPT detection
+    function detectBFT(distanceKm, speeds) {
+      const maxDist = 2;
+      let startIndex = -1;
+      let endIndex = -1;
+      for (let i = 1; i < distanceKm.length - 1; i++) {
+        if (distanceKm[i] > maxDist) break;
+        if (speeds[i] >= 10 && speeds[i] <= 15 && speeds[i + 1] < speeds[i]) {
+          startIndex = i;
+          break;
+        }
+      }
+      if (startIndex === -1) return null;
+
+      for (let j = startIndex + 1; j < distanceKm.length; j++) {
+        if (distanceKm[j] > maxDist + 0.5) break;
+        if (speeds[j] <= 2 || speeds[j] > speeds[j - 1]) {
+          endIndex = j;
+          break;
+        }
+      }
+      if (endIndex === -1) endIndex = Math.min(startIndex + 3, distanceKm.length - 1);
+
+      return {
+        startIndex,
+        endIndex,
+        startSpeed: speeds[startIndex],
+        endSpeed: speeds[endIndex],
+        startDist: distanceKm[startIndex],
+        endDist: distanceKm[endIndex]
+      };
+    }
+
+    // BPT: start speed (58–65 band) → LOWEST speed within next 2 km
+    function detectBPT(distanceKm, speeds, bftInfo) {
+      const maxSearchDistFromStart = 10; // only within first 10 km
+      const searchStart = bftInfo ? bftInfo.endIndex + 1 : 0;
+
+      let startIndex = -1;
+
+      // Find point where we enter 58–65 band and start dropping
+      for (let i = searchStart; i < distanceKm.length - 1; i++) {
+        if (distanceKm[i] > maxSearchDistFromStart) break;
+        if (speeds[i] >= 58 && speeds[i] <= 65 && speeds[i + 1] < speeds[i]) {
+          startIndex = i;
+          break;
+        }
+      }
+      if (startIndex === -1) return null;
+
+      const startDist = distanceKm[startIndex];
+
+      // From that point, search next 2 km for lowest speed
+      const maxDistForMinSearch = startDist + 2.0;
+      let lowestSpeed = speeds[startIndex];
+      let lowestIndex = startIndex;
+
+      for (let j = startIndex; j < distanceKm.length && distanceKm[j] <= maxDistForMinSearch; j++) {
+        if (speeds[j] < lowestSpeed) {
+          lowestSpeed = speeds[j];
+          lowestIndex = j;
+        }
+      }
+
+      return {
+        startIndex,
+        endIndex: lowestIndex,
+        startSpeed: speeds[startIndex],
+        endSpeed: speeds[lowestIndex],
+        lowestSpeed,
+        startDist,
+        endDist: distanceKm[lowestIndex]
+      };
+    }
+
+    function sampleSpeedBeforeStop(distanceKm, speeds, stopIndex, deltaKm) {
+      const stopDist = distanceKm[stopIndex];
+      const target = stopDist - deltaKm;
+      if (target <= 0) return { dist: distanceKm[0], speed: speeds[0], idx: 0 };
+      let bestIdx = 0;
+      let bestDiff = Infinity;
+      for (let i = 0; i <= stopIndex; i++) {
+        const d = Math.abs(distanceKm[i] - target);
+        if (d < bestDiff) {
+          bestDiff = d;
+          bestIdx = i;
+        }
+      }
+      return { dist: distanceKm[bestIdx], speed: speeds[bestIdx], idx: bestIdx };
+    }
+
+    // Charts
+    function plotMainSpeedChart(data) {
+      const ctx = document.getElementById("speedChart").getContext("2d");
+      if (mainSpeedChart) mainSpeedChart.destroy();
+
+      const { timeLabels, speeds } = data;
+
+      mainSpeedChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: timeLabels,
+          datasets: [{
+            label: "Speed (km/h)",
+            data: speeds,
+            borderWidth: 2,
+            tension: 0.3,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: "GPS Time" } },
+            y: { title: { display: true, text: "Speed (km/h)" }, beginAtZero: true }
+          },
+          plugins: {
+            legend: { display: true },
+            tooltip: { mode: "index", intersect: false }
+          }
+        }
+      });
+    }
+
+    function plotDistanceFirst10Km(data) {
+      const ctx = document.getElementById("distance10Chart").getContext("2d");
+      if (distance10Chart) distance10Chart.destroy();
+
+      const { distanceKm, speeds } = data;
+      const limitKm = 10;
+      const distFiltered = [];
+      const speedFiltered = [];
+      const originalIndexMap = [];
+
+      for (let i = 0; i < distanceKm.length; i++) {
+        if (distanceKm[i] <= limitKm) {
+          distFiltered.push(distanceKm[i]);
+          speedFiltered.push(speeds[i]);
+          originalIndexMap.push(i);
+        }
+      }
+
+      bftInfo = detectBFT(distanceKm, speeds);
+      bptInfo = detectBPT(distanceKm, speeds, bftInfo);
+
+      if (bftInfo) {
+        bftInfo.chartIndex = originalIndexMap.indexOf(bftInfo.startIndex);
+      }
+      if (bptInfo) {
+        bptInfo.chartIndex = originalIndexMap.indexOf(bptInfo.startIndex);
+      }
+
+      distance10Chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: distFiltered,
+          datasets: [{
+            label: "Speed (km/h)",
+            data: speedFiltered,
+            borderWidth: 2,
+            tension: 0.3,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: { display: true, text: "Distance from Start (km)" },
+              ticks: {
+                callback: function(value) {
+                  const lbl = this.getLabelForValue(value);
+                  const num = parseFloat(lbl);
+                  return isNaN(num) ? lbl : num.toFixed(2);
+                }
+              }
+            },
+            y: { title: { display: true, text: "Speed (km/h)" }, beginAtZero: true }
+          },
+          plugins: {
+            legend: { display: true },
+            tooltip: { mode: "index", intersect: false }
+          }
+        }
+      });
+
+      const infoDiv = document.getElementById("bftBptInfo");
+      let html = "";
+      if (bftInfo) {
+        html += `<div><span class="label">BFT</span> from <b>${bftInfo.startSpeed.toFixed(1)}</b> KMPH to <b>${bftInfo.endSpeed.toFixed(1)}</b> KMPH between <b>${bftInfo.startDist.toFixed(3)}</b> km and <b>${bftInfo.endDist.toFixed(3)}</b> km from start.</div>`;
+      } else {
+        html += `<div><span class="label">BFT</span>: Not clearly detected (10–15 KMPH band).</div>`;
+      }
+      if (bptInfo) {
+        html += `<div><span class="label">BPT</span> from <b>${bptInfo.startSpeed.toFixed(1)}</b> KMPH to lowest <b>${bptInfo.lowestSpeed.toFixed(1)}</b> KMPH between <b>${bptInfo.startDist.toFixed(3)}</b> km and <b>${bptInfo.endDist.toFixed(3)}</b> km from start.</div>`;
+      } else {
+        html += `<div><span class="label">BPT</span>: Not clearly detected (58–65 KMPH band).</div>`;
+      }
+      infoDiv.innerHTML = html;
+    }
+
+    // -------- CHART 3: distance from stoppage vs speed (last 1.5 km) ----------
+    function plotStoppageSegmentCharts(data) {
+      const { distanceKm, speeds, stoppageIndices, stationCodes, timeLabels } = data;
+      const container = document.getElementById("stoppageCharts");
+
+      container.innerHTML = "";
+      stoppageChartsInstances.forEach(ch => ch.destroy());
+      stoppageChartsInstances = [];
+      stoppageInfoList = [];
+
+      const windowKm = 1.5; // last 1.5 km
+      const maxM = windowKm * 1000; // 1500 m
+
+      if (!stoppageIndices.length) {
+        const msg = document.createElement("div");
+        msg.textContent = "No stoppages detected (speed not going to 0).";
+        msg.style.fontSize = "0.85rem";
+        msg.style.color = "#6b7280";
+        container.appendChild(msg);
+        return;
+      }
+
+      stoppageIndices.forEach((stopIdx, index) => {
+        const stopDist = distanceKm[stopIdx];
+        const fromDist = stopDist - windowKm;
+
+        // x axis: distance from stoppage (m), ~1500 to 0
+        const segPoints = [];
+        for (let i = 0; i <= stopIdx; i++) {
+          if (distanceKm[i] >= fromDist && distanceKm[i] <= stopDist) {
+            const offsetM = (stopDist - distanceKm[i]) * 1000; // metres from stop
+            segPoints.push({ x: offsetM, y: speeds[i] });
+          }
+        }
+        if (segPoints.length < 2) return;
+
+        // Samples for summaries / tables
+        const s3000 = sampleSpeedBeforeStop(distanceKm, speeds, stopIdx, 3.0); // for table
+        const s1500 = sampleSpeedBeforeStop(distanceKm, speeds, stopIdx, 1.5); // for callout
+        const s1000 = sampleSpeedBeforeStop(distanceKm, speeds, stopIdx, 1.0);
+        const s500  = sampleSpeedBeforeStop(distanceKm, speeds, stopIdx, 0.5);
+        const s100  = sampleSpeedBeforeStop(distanceKm, speeds, stopIdx, 0.1);
+        const s20   = sampleSpeedBeforeStop(distanceKm, speeds, stopIdx, 0.02);
+
+        const stnCode = stationCodes[stopIdx] || `Stoppage ${index + 1}`;
+        const stopTime = timeLabels[stopIdx];
+        let startIdx = stopIdx;
+        for (let i = stopIdx; i < speeds.length; i++) {
+          if (speeds[i] > 0) { startIdx = i; break; }
+        }
+        const startTime = timeLabels[startIdx];
+
+        stoppageInfoList.push({
+          station: stnCode,
+          stopIndex: stopIdx,
+          stopDist,
+          stopTime,
+          startTime,
+          s3000,
+          s1500,
+          s1000,
+          s500,
+          s100,
+          s20
+        });
+
+        const card = document.createElement("div");
+        card.className = "stoppage-card";
+
+        const title = document.createElement("div");
+        title.className = "stoppage-title";
+        title.textContent = `${stnCode} at ${stopDist.toFixed(3)} km`;
+        card.appendChild(title);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "stoppage-chart-wrapper";
+        const canvas = document.createElement("canvas");
+        wrapper.appendChild(canvas);
+        card.appendChild(wrapper);
+
+        const callouts = document.createElement("div");
+        callouts.className = "stoppage-callouts";
+        callouts.innerHTML =
+          `<div><span class="label">1.5 km before:</span> ${s1500.speed.toFixed(1)} km/h (at ${s1500.dist.toFixed(3)} km)</div>` +
+          `<div><span class="label">1 km before:</span> ${s1000.speed.toFixed(1)} km/h (at ${s1000.dist.toFixed(3)} km)</div>` +
+          `<div><span class="label">100 m before:</span> ${s100.speed.toFixed(1)} km/h (at ${s100.dist.toFixed(3)} km)</div>` +
+          `<div><span class="label">Stop:</span> ${stopTime}, <span class="label">Start:</span> ${startTime}</div>`;
+        card.appendChild(callouts);
+
+        container.appendChild(card);
+
+        const ctx = canvas.getContext("2d");
+        const chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            datasets: [
+              {
+                label: "Speed (km/h)",
+                data: segPoints,
+                borderWidth: 2,
+                tension: 0.2,
+                pointRadius: 3
+              }
+            ]
+          },
+          options: {
+            parsing: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type: "linear",
+                title: { display: true, text: "Distance from Stoppage (m)" },
+                reverse: true, // 1500 -> 0 left to right
+                min: 0,
+                max: maxM,
+                ticks: {
+                  stepSize: 100,
+                  callback(value) {
+                    if (value === 0) return "0 (Stop)";
+                    return value + " m";
+                  }
+                }
+              },
+              y: {
+                title: { display: true, text: "Speed (km/h)" },
+                beginAtZero: true
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title(items) {
+                    const v = items[0].parsed.x;
+                    if (v === 0) return "0 m (at stop)";
+                    return `${v.toFixed(0)} m before stop`;
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        stoppageChartsInstances.push(chart);
+      });
+    }
+
+    // Performance summary
+    function parseTimeToSeconds(t) {
+      const parts = t.split(":").map(x => parseInt(x, 10));
+      if (parts.length !== 3 || parts.some(isNaN)) return 0;
+      return parts[0]*3600 + parts[1]*60 + parts[2];
+    }
+
+    function formatDuration(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    function buildPerfSummary(data) {
+      const tbody = document.querySelector("#perfSummaryTable tbody");
+      tbody.innerHTML = "";
+
+      const driverName = document.getElementById("driverName").value || "-";
+      const trainNo = document.getElementById("trainNo").value || "-";
+      const section = document.getElementById("section").value || "-";
+      const runDateInput = document.getElementById("runDate").value;
+      const analysedBy = document.getElementById("analysedBy").value || "-";
+      const analysedOnInput = document.getElementById("analysedOn").value;
+
+      const depTimeSel = document.getElementById("depTime").value;
+      const arrTimeSel = document.getElementById("arrTime").value;
+
+      const runDate = runDateInput ? runDateInput.split("-").reverse().join("-") : "-";
+      const analysedOn = analysedOnInput ? analysedOnInput.split("-").reverse().join("-") : "-";
+
+      const { timeLabels, speeds } = data;
+      const csvStart = timeLabels[0] || "-";
+      const csvEnd = timeLabels[timeLabels.length - 1] || "-";
+
+      // Use dropdown DEP/ARR if provided, else CSV first/last time
+      const startTime = depTimeSel || csvStart;
+      const endTime = arrTimeSel || csvEnd;
+
+      const durSec = parseTimeToSeconds(endTime) - parseTimeToSeconds(startTime);
+      const totalDuration = durSec > 0 ? formatDuration(durSec) : "-";
+
+      let maxSpeed = -Infinity;
+      let maxIdx = 0;
+      for (let i = 0; i < speeds.length; i++) {
+        if (speeds[i] > maxSpeed) {
+          maxSpeed = speeds[i];
+          maxIdx = i;
+        }
+      }
+      const maxSpeedStr = maxSpeed > -Infinity
+        ? `${maxSpeed.toFixed(1)} km/h at ${timeLabels[maxIdx]}`
+        : "-";
+
+      const sumSpeed = speeds.reduce((a, b) => a + b, 0);
+      const avgSpeed = speeds.length ? (sumSpeed / speeds.length) : 0;
+
+      let bftSummary = "Not detected";
+      if (bftInfo) bftSummary = `${bftInfo.startSpeed.toFixed(1)}→${bftInfo.endSpeed.toFixed(1)} km/h (10–15 km/h band)`;
+
+      let bptSummary = "Not detected";
+      if (bptInfo) bptSummary = `${bptInfo.startSpeed.toFixed(1)}→${bptInfo.lowestSpeed.toFixed(1)} km/h (58–65 km/h band)`;
+
+      function addRow(label, value) {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        const td2 = document.createElement("td");
+        td1.textContent = label;
+        td2.textContent = value;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+      }
+
+      addRow("Driver Name", driverName);
+      addRow("Train No", trainNo);
+      addRow("Section", section);
+      addRow("Date", runDate);
+      addRow("DEP TIME", startTime);
+      addRow("ARR TIME", endTime);
+      addRow("Total Duration", totalDuration);
+      addRow("Analyzed By", analysedBy);
+      addRow("Analyzed On", analysedOn);
+      addRow("Maximum Speed", maxSpeedStr);
+      addRow("Average Speed", `${avgSpeed.toFixed(1)} km/h`);
+      addRow("BFT (10–15 km/h)", bftSummary);
+      addRow("BPT (58–65 km/h)", bptSummary);
+    }
+
+    function buildSummaryTable() {
+      const tbody = document.querySelector("#summaryTable tbody");
+      tbody.innerHTML = "";
+
+      stoppageInfoList.forEach(info => {
+        const tr = document.createElement("tr");
+        function td(val) { const c = document.createElement("td"); c.textContent = val; return c; }
+        tr.appendChild(td(info.station));
+        tr.appendChild(td(info.stopTime));
+        tr.appendChild(td(info.startTime));
+        tr.appendChild(td(info.s3000.speed.toFixed(1)));
+        tr.appendChild(td(info.s1000.speed.toFixed(1)));
+        tr.appendChild(td(info.s500.speed.toFixed(1)));
+        tr.appendChild(td(info.s100.speed.toFixed(1)));
+        tr.appendChild(td(info.s20.speed.toFixed(1)));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function buildIrregularities() {
+      const box = document.getElementById("irregularitiesBox");
+      box.innerHTML = "";
+      const issues = [];
+
+      stoppageInfoList.forEach(info => {
+        if (info.s1000.speed > LIMIT_1000M) {
+          issues.push(`Station ${info.station}: Speed @1000 m = ${info.s1000.speed.toFixed(2)} km/h (should be ≤ ${LIMIT_1000M})`);
+        }
+        if (info.s20.speed > LIMIT_20M) {
+          issues.push(`Station ${info.station}: Speed @20 m = ${info.s20.speed.toFixed(2)} km/h (should be ≤ ${LIMIT_20M})`);
+        }
+      });
+
+      const title = document.createElement("h3");
+      title.textContent = "⚠ Irregularities Detected:";
+      box.appendChild(title);
+
+      if (!issues.length) {
+        const div = document.createElement("div");
+        div.textContent = "None (all stations within limits).";
+        box.appendChild(div);
+        return;
+      }
+
+      const ul = document.createElement("ul");
+      issues.forEach(msg => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+
+    function plotAllGraphs() {
+      if (!rawData) {
+        alert("Please select and load an SPM CSV file first.");
+        return;
+      }
+      plotDistanceFirst10Km(rawData);      // Chart 2
+      plotStoppageSegmentCharts(rawData);  // Chart 3
+      plotMainSpeedChart(rawData);         // Chart 1
+      buildPerfSummary(rawData);           // Summary
+      buildSummaryTable();                 // Station-wise
+      buildIrregularities();               // Irregularities
+    }
+
+    function setupButtons() {
+      document.getElementById("plotBtn").addEventListener("click", plotAllGraphs);
+      document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+      document.getElementById("fileInput").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            rawData = parseCsv(e.target.result);
+            populateStationsFromCodes(rawData.stationCodes);
+            alert("CSV loaded successfully. Now click “Plot & Generate Report”.");
+          } catch (err) {
+            console.error(err);
+            alert("Error parsing CSV: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      populateTimeDropdown("depTime");
+      populateTimeDropdown("arrTime");
+      setupButtons();
+    });
+  </script>
+</body>
+</html>
